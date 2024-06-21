@@ -80,13 +80,3 @@ Contributions are welcome! Please open an issue or submit a pull request on [Git
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Contact
-
-For any questions or issues, please contact [Movian](https://github.com/Movian) at DarkDragonCreations.
-
-Additional Information Required
-
-    Release Page URL: If you have a specific URL for the releases page, please provide it.
-    License: The type of license for the project (assumed MIT, but please confirm).
-    Contributing Guidelines: If you have specific contributing guidelines, please provide them.
-    Contact Information: Any additional contact information or preferred method of communication for issues and questions.
