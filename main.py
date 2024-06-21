@@ -1,11 +1,28 @@
+import json
 import os
+import sys
 import zipfile
 import subprocess
-import json
+import shutil
 
 def unzip_file(zip_path, extract_to):
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         zip_ref.extractall(extract_to)
+
+def clear_output_folder(output_folder):
+    for root, dirs, files in os.walk(output_folder):
+        for name in files:
+            file_path = os.path.join(root, name)
+            try:
+                os.unlink(file_path)
+            except Exception as e:
+                print(f'Failed to delete {file_path}. Reason: {e}')
+        for name in dirs:
+            dir_path = os.path.join(root, name)
+            try:
+                shutil.rmtree(dir_path)
+            except Exception as e:
+                print(f'Failed to delete {dir_path}. Reason: {e}')
 
 def main():
     input_folder = "Input"
@@ -30,10 +47,21 @@ def main():
     blender_executable = config.get('blender_executable', '')
     launch_blender = config.get('launch_blender', False)
     scale_for_ue = config.get('scale_for_ue', False)
+    ior = config.get('ior', 1.05)
+    x_offset = config.get('x_offset', 300)
+    y_offset = config.get('y_offset', 400)
+    debug_mode = config.get('debug', False)
+    cleanup_objects = config.get('cleanup_objects', True)
+    apply_textures = config.get('apply_textures', True)
+    resize_object = config.get('resize_object', True)
 
     if not blender_executable:
         print("Blender executable path is not configured.")
         return
+    
+    # Clear output folder if debug mode is enabled
+    if debug_mode:
+        clear_output_folder(output_folder)
     
     # Find the zip file in the input folder
     zip_file = None
@@ -71,24 +99,44 @@ def main():
     print(f"Normal texture path: {texture_paths['normal']}")
     print(f"Metallic texture path: {texture_paths['metallic']}")
 
-    # Path to the Blender script
-    blender_script = os.path.join(os.path.dirname(__file__), "blender_script.py")
-    
-    # Command to invoke Blender
-    blender_command = [
-        blender_executable,
-        "--background",
-        "--python", blender_script,
-        "--", obj_path, texture_paths['diffuse'], texture_paths['normal'], texture_paths['metallic'], output_folder, base_name, str(export_obj), str(launch_blender), str(scale_for_ue)
+    # Prepare the common arguments for Blender scripts
+    common_args = [
+        obj_path,
+        texture_paths['diffuse'],
+        texture_paths['normal'],
+        texture_paths['metallic'],
+        output_folder,
+        base_name,
+        str(export_obj),
+        str(launch_blender),
+        str(scale_for_ue),
+        str(ior),
+        str(x_offset),
+        str(y_offset)
     ]
-    
-    # Run the Blender command
-    subprocess.run(blender_command)
 
-    # Launch Blender with the generated .blend file if the flag is set
+    # Define the scripts to run based on configuration
+    scripts_to_run = []
+    if cleanup_objects:
+        scripts_to_run.append('cleanup.py')
+    if apply_textures:
+        scripts_to_run.append('apply_textures.py')
+    if resize_object:
+        scripts_to_run.append('resize.py')
+
+    # Run the consolidated Blender script with arguments
+    print(f"Running consolidated Blender script: blender_pipeline.py")
+    command = [blender_executable, '--background', '--python', 'blender_pipeline.py', '--'] + common_args
+    result = subprocess.run(command)
+    if result.returncode != 0:
+        print(f"Error running Blender pipeline script")
+        return
+
+    # If configured to launch Blender, do so
     if launch_blender:
-        blend_file_path = os.path.join(output_folder, f"{base_name}.blend")
-        subprocess.run([blender_executable, blend_file_path])
+        output_file_path = os.path.join(output_folder, f"{base_name}.blend")
+        print(f"Launching Blender with file: {output_file_path}")
+        subprocess.run([blender_executable, output_file_path])
 
 if __name__ == "__main__":
     main()
