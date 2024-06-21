@@ -7,7 +7,7 @@ def arrange_nodes(node_tree, x_offset, y_offset):
     # Initialize positions for switching
     normal_node_position = (-x_offset * 2, tex_y_offset - y_offset)
     metallic_node_position = (-x_offset * 2, tex_y_offset - 2 * y_offset)
-    separate_color_position = (-x_offset * 1, tex_y_offset - 2 * y_offset + 200)  # Adjusted further right
+    separate_color_position = (-x_offset * 1, tex_y_offset - y_offset + 200)  # Move it further up
 
     for node in node_tree.nodes:
         print(f"Processing node: {node.name}, type: {node.type}")
@@ -22,7 +22,7 @@ def arrange_nodes(node_tree, x_offset, y_offset):
                 node.location = (-x_offset * 2, tex_y_offset)
                 print(f"Moved texture node to {(-x_offset * 2, tex_y_offset)}")
             tex_y_offset -= y_offset
-        elif node.type == 'SEPARATE_COLOR':  # Ensure we're using the Separate Color node
+        elif node.type == 'ShaderNodeSeparateColor':  # Ensure we're using the Separate Color node
             node.location = separate_color_position
             print(f"Moved Separate Color node to {separate_color_position}")
         else:
