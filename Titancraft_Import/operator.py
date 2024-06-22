@@ -13,18 +13,18 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
     bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = ".zip"
-    filter_glob: StringProperty(default="*.zip", options={'HIDDEN'}) # type: ignore
-    ior: FloatProperty( # type: ignore
+    filter_glob: StringProperty(default="*.zip", options={'HIDDEN'})  # type: ignore
+    ior: FloatProperty(  # type: ignore
         name="IOR",
         description="Index of Refraction for the material",
         default=1.05,
     )
-    resize_for_ue: BoolProperty( # type: ignore
+    resize_for_ue: BoolProperty(  # type: ignore
         name="Resize for UE",
         description="Resize the model for Unreal Engine",
         default=True,
     )
-    remove_default_objects: BoolProperty( # type: ignore
+    remove_default_objects: BoolProperty(  # type: ignore
         name="Remove Default Objects",
         description="Remove the default camera, cube, and light",
         default=True,
@@ -84,16 +84,27 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
                 print(f"Texture file not found: {path}")
                 return {'CANCELLED'}
 
-        # Step 1: Cleanup default objects if the property is set to True
+        # Step 1: Rename the default collection to "Character"
+        if 'Collection' in bpy.data.collections:
+            bpy.data.collections['Collection'].name = 'Character'
+            print("Renamed default collection to 'Character'.")
+
+        # Step 2: Cleanup default objects if the property is set to True
         if self.remove_default_objects:
             cleanup_default_objects()
 
-        # Step 2: Apply textures
+        # Step 3: Apply textures
         result = apply_textures(obj_path, texture_paths, base_name, self.ior)
         if result == {'CANCELLED'}:
             return {'CANCELLED'}
 
-        # Step 3: Resize object if the resize_for_ue property is set to True
+        # Step 4: Rename the imported object to the base name from the zip file
+        imported_objects = [obj for obj in bpy.context.scene.objects if obj.type == 'MESH']
+        if imported_objects:
+            imported_objects[-1].name = base_name
+            print(f"Renamed imported object to '{base_name}'.")
+
+        # Step 5: Resize object if the resize_for_ue property is set to True
         if self.resize_for_ue:
             result = resize_object(scale=(0.054, 0.054, 0.054))
             if result == {'CANCELLED'}:
