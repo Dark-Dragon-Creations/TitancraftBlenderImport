@@ -1,30 +1,30 @@
 import bpy  # type: ignore
 import os
 import zipfile
-from bpy.props import StringProperty, FloatProperty, BoolProperty
-from bpy_extras.io_utils import ImportHelper
+from bpy.props import StringProperty, FloatProperty, BoolProperty  # type: ignore
+from bpy_extras.io_utils import ImportHelper  # type: ignore
 from .functions.cleanup import cleanup_default_objects
 from .functions.apply_textures import apply_textures
 from .functions.resize import resize_object
 
-class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):
+class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ignore
     bl_idname = "titancraft_import.zip"
     bl_label = "Titancraft Import"
     bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = ".zip"
-    filter_glob: StringProperty(default="*.zip", options={'HIDDEN'})
-    ior: FloatProperty(
+    filter_glob: StringProperty(default="*.zip", options={'HIDDEN'}) # type: ignore
+    ior: FloatProperty( # type: ignore
         name="IOR",
         description="Index of Refraction for the material",
         default=1.05,
     )
-    resize_for_ue: BoolProperty(
+    resize_for_ue: BoolProperty( # type: ignore
         name="Resize for UE",
         description="Resize the model for Unreal Engine",
         default=True,
     )
-    remove_default_objects: BoolProperty(
+    remove_default_objects: BoolProperty( # type: ignore
         name="Remove Default Objects",
         description="Remove the default camera, cube, and light",
         default=True,
