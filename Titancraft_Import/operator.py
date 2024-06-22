@@ -33,24 +33,36 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):
             zip_ref.extractall(extract_to)
 
         # Determine the base name from the zip file name
-        base_name = os.path.splitext(os.path.basename(self.filepath))[0]
+        zip_filename = os.path.splitext(os.path.basename(self.filepath))[0]
+        base_name_parts = zip_filename.split('_')
+        base_name = '_'.join(base_name_parts[:-1])  # Join all parts except the last one
         print(f"Base name: {base_name}")
 
-        # Update the path to the subdirectory within the extraction folder
-        subdirectory_path = os.path.join(extract_to, base_name)
-        print(f"Subdirectory path: {subdirectory_path}")
+        # Define the expected file paths
+        obj_path = os.path.join(extract_to, f"{base_name}.obj")
+        texture_paths = {
+            'diffuse': os.path.join(extract_to, f"{base_name} Albedo.png"),
+            'normal': os.path.join(extract_to, f"{base_name} Normals.png"),
+            'metallic': os.path.join(extract_to, f"{base_name} Metallic AO Roughness.png")
+        }
+
+        # Check if files exist in the extraction directory
+        if not all(os.path.exists(path) for path in [obj_path, *texture_paths.values()]):
+            # If files do not exist, check subdirectories
+            subdirectories = [os.path.join(extract_to, d) for d in os.listdir(extract_to) if os.path.isdir(os.path.join(extract_to, d))]
+            if len(subdirectories) == 1:
+                subdirectory_path = subdirectories[0]
+                print(f"Subdirectory path: {subdirectory_path}")
+                obj_path = os.path.join(subdirectory_path, f"{base_name}.obj")
+                texture_paths = {
+                    'diffuse': os.path.join(subdirectory_path, f"{base_name} Albedo.png"),
+                    'normal': os.path.join(subdirectory_path, f"{base_name} Normals.png"),
+                    'metallic': os.path.join(subdirectory_path, f"{base_name} Metallic AO Roughness.png")
+                }
 
         # List the contents of the extracted directory for debugging
-        extracted_files = os.listdir(subdirectory_path)
+        extracted_files = os.listdir(os.path.dirname(obj_path))
         print(f"Extracted files: {extracted_files}")
-
-        # File paths
-        obj_path = os.path.join(subdirectory_path, f"{base_name}.obj")
-        texture_paths = {
-            'diffuse': os.path.join(subdirectory_path, f"{base_name} Albedo.png"),
-            'normal': os.path.join(subdirectory_path, f"{base_name} Normals.png"),
-            'metallic': os.path.join(subdirectory_path, f"{base_name} Metallic AO Roughness.png")
-        }
 
         # Debug: Print the paths to ensure they are correct
         print(f"OBJ file path: {obj_path}")
