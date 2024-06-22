@@ -1,4 +1,4 @@
-import bpy
+import bpy # type: ignore
 import os
 import zipfile
 from bpy.props import StringProperty, FloatProperty, BoolProperty
