@@ -2,7 +2,7 @@ import bpy  # type: ignore
 import os
 from .utils import arrange_nodes
 
-def apply_textures(obj_path, texture_paths, base_name, ior=1.05, x_offset=300, y_offset=400):
+def apply_textures(obj_path, texture_paths, base_name, ior=1.05):
     print("Applying textures...")
 
     # Import the .obj file
@@ -58,13 +58,7 @@ def apply_textures(obj_path, texture_paths, base_name, ior=1.05, x_offset=300, y
     bsdf.inputs['IOR'].default_value = ior
 
     # Arrange nodes
-    arrange_nodes(material.node_tree, x_offset, y_offset)
-
-    # Adjust node locations
-    tex_image_node.location = (-x_offset * 2, y_offset)
-    tex_normal_node.location = (-x_offset * 2, 0)
-    tex_metallic_node.location = (-x_offset * 2, -y_offset)
-    separate_color_node.location = (-x_offset * 1, -y_offset + 200)  # Adjusted further up
+    arrange_nodes(material.node_tree)
 
     # Assign material to the object
     if obj.data.materials:
