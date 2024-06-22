@@ -1,4 +1,4 @@
-import bpy # type: ignore
+import bpy  # type: ignore
 import os
 import zipfile
 from bpy.props import StringProperty, FloatProperty, BoolProperty
@@ -22,6 +22,11 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):
     resize_for_ue: BoolProperty(
         name="Resize for UE",
         description="Resize the model for Unreal Engine",
+        default=True,
+    )
+    remove_default_objects: BoolProperty(
+        name="Remove Default Objects",
+        description="Remove the default camera, cube, and light",
         default=True,
     )
 
@@ -79,8 +84,9 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):
                 print(f"Texture file not found: {path}")
                 return {'CANCELLED'}
 
-        # Step 1: Cleanup default objects
-        cleanup_default_objects()
+        # Step 1: Cleanup default objects if the property is set to True
+        if self.remove_default_objects:
+            cleanup_default_objects()
 
         # Step 2: Apply textures
         result = apply_textures(obj_path, texture_paths, base_name, self.ior)
