@@ -6,6 +6,8 @@ def arrange_nodes(node_tree):
     tex_normal_coords = (-600, -400)
     tex_metallic_coords = (-600, 0)
     separate_color_coords = (-300, -50)
+    normal_map_coords = (-300, -400)
+    mix_rgb_coords = (-300, 400)
     bsdf_coords = (0, 0)
     output_coords = (300, 0)
 
@@ -24,6 +26,12 @@ def arrange_nodes(node_tree):
         elif isinstance(node, bpy.types.ShaderNodeSeparateColor):
             node.location = separate_color_coords
             print(f"Moved Separate Color node to {separate_color_coords}")
+        elif isinstance(node, bpy.types.ShaderNodeNormalMap):
+            node.location = normal_map_coords
+            print(f"Moved Normal Map node to {normal_map_coords}")
+        elif isinstance(node, bpy.types.ShaderNodeMixRGB):
+            node.location = mix_rgb_coords
+            print(f"Moved MixRGB node to {mix_rgb_coords}")
         elif node.type == 'BSDF_PRINCIPLED':
             node.location = bsdf_coords
             print(f"Moved Principled BSDF node to {bsdf_coords}")
