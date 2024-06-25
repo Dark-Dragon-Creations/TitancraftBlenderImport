@@ -14,9 +14,13 @@ Titancraft Import is a Blender add-on developed by DarkDragonCreations to stream
 
 ## Installation
 
-1. **Download the Add-on**
+1 A. **Download the Add-on**
 
    Download the latest release of the Titancraft Import add-on from the [releases page](https://github.com/Movian/Titancraft_Import/releases).
+
+1 B. **Download the Latest**
+
+   Download the latest Source as a ZIP and follow the same instructions, this will ensure you have the latest changes (Treat this as a BETA as you will have the most recent coding changes).
 
 2. **Install the Add-on in Blender**
 
