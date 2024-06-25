@@ -30,6 +30,11 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         description="Remove the default camera, cube, and light",
         default=True,
     )
+    rename_objects: BoolProperty(  # type: ignore
+        name="Rename Objects",
+        description="Rename the Collection and imported object",
+        default=True,
+    )
 
     def execute(self, context):
         base_name, extract_to = self.extract_zip()
@@ -38,7 +43,8 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         if not self.check_files_exist(obj_path, texture_paths):
             return {'CANCELLED'}
 
-        self.rename_collection('Collection', 'Character')
+        if self.rename_objects:
+            self.rename_collection('Collection', 'Character')
         if self.remove_default_objects:
             cleanup_default_objects()
 
@@ -46,7 +52,8 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         if result == {'CANCELLED'}:
             return {'CANCELLED'}
 
-        self.rename_imported_object(base_name)
+        if self.rename_objects:
+            self.rename_imported_object(base_name)
         if self.resize_for_ue:
             result = resize_object(scale=(0.054, 0.054, 0.054))
             if result == {'CANCELLED'}:
@@ -61,8 +68,7 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
             zip_ref.extractall(extract_to)
 
         zip_filename = os.path.splitext(os.path.basename(self.filepath))[0]
-        base_name_parts = zip_filename.split('_')
-        base_name = '_'.join(base_name_parts[:-1])  # Join all parts except the last one
+        base_name = '_'.join(zip_filename.split('_')[:-1])  # Join all parts except the last one
         print(f"Base name: {base_name}")
 
         return base_name, extract_to
