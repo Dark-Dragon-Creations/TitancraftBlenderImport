@@ -7,7 +7,6 @@ from .functions.cleanup import cleanup_default_objects
 from .functions.apply_textures import apply_textures
 from .functions.resize import resize_object
 
-
 class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ignore
     bl_idname = "titancraft_import.zip"
     bl_label = "Titancraft Import"
@@ -20,10 +19,10 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         description="Index of Refraction for the material",
         default=1.05,
     )
-    resize_for_ue: BoolProperty(  # type: ignore
-        name="Resize for UE",
-        description="Resize the model for Unreal Engine",
-        default=True,
+    configure_for_unreal: BoolProperty(  # type: ignore
+        name="Configure for Unreal",
+        description="Configure the model for Unreal Engine",
+        default=False,
     )
     remove_default_objects: BoolProperty(  # type: ignore
         name="Remove Default Objects",
@@ -48,13 +47,13 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         if self.remove_default_objects:
             cleanup_default_objects()
 
-        result = apply_textures(obj_path, texture_paths, base_name, self.ior)
+        result = apply_textures(obj_path, texture_paths, base_name, self.ior, self.configure_for_unreal)
         if result == {'CANCELLED'}:
             return {'CANCELLED'}
 
         if self.rename_objects:
             self.rename_imported_object(base_name)
-        if self.resize_for_ue:
+        if self.configure_for_unreal:
             result = resize_object(scale=(0.054, 0.054, 0.054))
             if result == {'CANCELLED'}:
                 return {'CANCELLED'}
