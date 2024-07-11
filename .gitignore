@@ -1,3 +1,4 @@
 
 Titancraft_Import.zip
 *.zip
+/Titancraft_Import/__pycache__

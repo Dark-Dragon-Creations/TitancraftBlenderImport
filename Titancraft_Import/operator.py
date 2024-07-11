@@ -81,14 +81,49 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         }
 
         if not all(os.path.exists(path) for path in [obj_path, *texture_paths.values()]):
-            subdirectory_path = self.get_subdirectory_path(extract_to)
-            if subdirectory_path:
-                obj_path = os.path.join(subdirectory_path, f"{base_name}.obj")
+            # Try without base name
+            obj_path = os.path.join(extract_to, "model.obj")
+            texture_paths = {
+                'diffuse': os.path.join(extract_to, "Albedo.png"),
+                'normal': os.path.join(extract_to, "Normals.png"),
+                'metallic': os.path.join(extract_to, "Metallic AO Roughness.png")
+            }
+
+            if not all(os.path.exists(path) for path in [obj_path, *texture_paths.values()]):
+                # Try with the new naming convention
+                obj_path = os.path.join(extract_to, "model.obj")
                 texture_paths = {
-                    'diffuse': os.path.join(subdirectory_path, f"{base_name} Albedo.png"),
-                    'normal': os.path.join(subdirectory_path, f"{base_name} Normals.png"),
-                    'metallic': os.path.join(subdirectory_path, f"{base_name} Metallic AO Roughness.png")
+                    'diffuse': os.path.join(extract_to, "albedo.png"),
+                    'normal': os.path.join(extract_to, "normals.png"),
+                    'metallic': os.path.join(extract_to, "metallic_ao_roughness.png")
                 }
+
+                # Check again if files exist in subdirectory
+                if not all(os.path.exists(path) for path in [obj_path, *texture_paths.values()]):
+                    subdirectory_path = self.get_subdirectory_path(extract_to)
+                    if subdirectory_path:
+                        obj_path = os.path.join(subdirectory_path, f"{base_name}.obj")
+                        texture_paths = {
+                            'diffuse': os.path.join(subdirectory_path, f"{base_name} Albedo.png"),
+                            'normal': os.path.join(subdirectory_path, f"{base_name} Normals.png"),
+                            'metallic': os.path.join(subdirectory_path, f"{base_name} Metallic AO Roughness.png")
+                        }
+                        if not all(os.path.exists(path) for path in [obj_path, *texture_paths.values()]):
+                            # Try without base name in subdirectory
+                            obj_path = os.path.join(subdirectory_path, "model.obj")
+                            texture_paths = {
+                                'diffuse': os.path.join(subdirectory_path, "Albedo.png"),
+                                'normal': os.path.join(subdirectory_path, "Normals.png"),
+                                'metallic': os.path.join(subdirectory_path, "Metallic AO Roughness.png")
+                            }
+                            if not all(os.path.exists(path) for path in [obj_path, *texture_paths.values()]):
+                                # Try with the new naming convention in subdirectory
+                                obj_path = os.path.join(subdirectory_path, "model.obj")
+                                texture_paths = {
+                                    'diffuse': os.path.join(subdirectory_path, "albedo.png"),
+                                    'normal': os.path.join(subdirectory_path, "normals.png"),
+                                    'metallic': os.path.join(subdirectory_path, "metallic_ao_roughness.png")
+                                }
 
         return obj_path, texture_paths
 
