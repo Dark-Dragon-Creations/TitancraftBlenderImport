@@ -76,7 +76,7 @@ markdown
 - `functions/resize.py`: Script for resizing the imported model.
 - `functions/utils.py`: Utility functions for node arrangement and other tasks.
 
-### Creating an Animated GIF from PNG Images
+## Creating an Animated GIF from PNG Images
 
 This section explains how to configure and use the Python script to create an animated GIF from a series of PNG images.
 Prerequisites. This process can be used to combine the images exported from blender from rendering the animation created.
