@@ -1,7 +1,7 @@
 import bpy  # type: ignore
 import os
 import zipfile
-from bpy.props import StringProperty, FloatProperty, BoolProperty  # type: ignore
+from bpy.props import StringProperty, FloatProperty, EnumProperty, BoolProperty  # type: ignore
 from bpy_extras.io_utils import ImportHelper  # type: ignore
 from .functions.cleanup import cleanup_default_objects
 from .functions.apply_textures import apply_textures
@@ -19,10 +19,15 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         description="Index of Refraction for the material",
         default=1.05,
     )
-    configure_for_unreal: BoolProperty(  # type: ignore
-        name="Configure for Unreal",
-        description="Configure the model for Unreal Engine",
-        default=False,
+    import_for: EnumProperty(  # type: ignore
+        name="Import For",
+        description="Select the configuration type",
+        items=[
+            ('DEFAULT', "Default", "Default configuration"),
+            ('UNREAL', "Unreal", "Configure the model for Unreal Engine"),
+            ('TURNTABLE', "Turntable", "Add a rotating camera for turntable animation")
+        ],
+        default='DEFAULT'
     )
     remove_default_objects: BoolProperty(  # type: ignore
         name="Remove Default Objects",
@@ -33,11 +38,6 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         name="Rename Objects",
         description="Rename the Collection and imported object",
         default=True,
-    )
-    configure_for_turntable: BoolProperty(  # type: ignore
-        name="Configure for Turntable",
-        description="Add a rotating camera for turntable animation",
-        default=False,
     )
 
     def execute(self, context):
@@ -52,18 +52,18 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         if self.remove_default_objects:
             cleanup_default_objects()
 
-        result = apply_textures(obj_path, texture_paths, base_name, self.ior, self.configure_for_unreal)
+        result = apply_textures(obj_path, texture_paths, base_name, self.ior, self.import_for)
         if result == {'CANCELLED'}:
             return {'CANCELLED'}
 
         if self.rename_objects:
             self.rename_imported_object(base_name)
-        if self.configure_for_unreal or self.configure_for_turntable:
+        if self.import_for in ['UNREAL', 'TURNTABLE']:
             result = resize_object(scale=(0.054, 0.054, 0.054))
             if result == {'CANCELLED'}:
                 return {'CANCELLED'}
 
-        if self.configure_for_turntable:
+        if self.import_for == 'TURNTABLE':
             self.setup_turntable_camera()
             self.add_lights()
 
@@ -84,55 +84,24 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
     def get_file_paths(self, base_name, extract_to):
         obj_path = os.path.join(extract_to, f"{base_name}.obj")
         texture_paths = {
-            'diffuse': os.path.join(extract_to, f"{base_name} Albedo.png"),
-            'normal': os.path.join(extract_to, f"{base_name} Normals.png"),
-            'metallic': os.path.join(extract_to, f"{base_name} Metallic AO Roughness.png")
+            'ao': os.path.join(extract_to, f"{base_name}_ao.png"),
+            'color': os.path.join(extract_to, f"{base_name}_color.png"),
+            'metallic': os.path.join(extract_to, f"{base_name}_metallic.png"),
+            'normals': os.path.join(extract_to, f"{base_name}_normals.png"),
+            'roughness': os.path.join(extract_to, f"{base_name}_roughness.png")
         }
 
         if not all(os.path.exists(path) for path in [obj_path, *texture_paths.values()]):
-            # Try without base name
-            obj_path = os.path.join(extract_to, "model.obj")
-            texture_paths = {
-                'diffuse': os.path.join(extract_to, "Albedo.png"),
-                'normal': os.path.join(extract_to, "Normals.png"),
-                'metallic': os.path.join(extract_to, "Metallic AO Roughness.png")
-            }
-
-            if not all(os.path.exists(path) for path in [obj_path, *texture_paths.values()]):
-                # Try with the new naming convention
-                obj_path = os.path.join(extract_to, "model.obj")
+            subdirectory_path = self.get_subdirectory_path(extract_to)
+            if subdirectory_path:
+                obj_path = os.path.join(subdirectory_path, f"{base_name}.obj")
                 texture_paths = {
-                    'diffuse': os.path.join(extract_to, "albedo.png"),
-                    'normal': os.path.join(extract_to, "normals.png"),
-                    'metallic': os.path.join(extract_to, "metallic_ao_roughness.png")
+                    'ao': os.path.join(subdirectory_path, f"{base_name}_ao.png"),
+                    'color': os.path.join(subdirectory_path, f"{base_name}_color.png"),
+                    'metallic': os.path.join(subdirectory_path, f"{base_name}_metallic.png"),
+                    'normals': os.path.join(subdirectory_path, f"{base_name}_normals.png"),
+                    'roughness': os.path.join(subdirectory_path, f"{base_name}_roughness.png")
                 }
-
-                # Check again if files exist in subdirectory
-                if not all(os.path.exists(path) for path in [obj_path, *texture_paths.values()]):
-                    subdirectory_path = self.get_subdirectory_path(extract_to)
-                    if subdirectory_path:
-                        obj_path = os.path.join(subdirectory_path, f"{base_name}.obj")
-                        texture_paths = {
-                            'diffuse': os.path.join(subdirectory_path, f"{base_name} Albedo.png"),
-                            'normal': os.path.join(subdirectory_path, f"{base_name} Normals.png"),
-                            'metallic': os.path.join(subdirectory_path, f"{base_name} Metallic AO Roughness.png")
-                        }
-                        if not all(os.path.exists(path) for path in [obj_path, *texture_paths.values()]):
-                            # Try without base name in subdirectory
-                            obj_path = os.path.join(subdirectory_path, "model.obj")
-                            texture_paths = {
-                                'diffuse': os.path.join(subdirectory_path, "Albedo.png"),
-                                'normal': os.path.join(subdirectory_path, "Normals.png"),
-                                'metallic': os.path.join(subdirectory_path, "Metallic AO Roughness.png")
-                            }
-                            if not all(os.path.exists(path) for path in [obj_path, *texture_paths.values()]):
-                                # Try with the new naming convention in subdirectory
-                                obj_path = os.path.join(subdirectory_path, "model.obj")
-                                texture_paths = {
-                                    'diffuse': os.path.join(subdirectory_path, "albedo.png"),
-                                    'normal': os.path.join(subdirectory_path, "normals.png"),
-                                    'metallic': os.path.join(subdirectory_path, "metallic_ao_roughness.png")
-                                }
 
         return obj_path, texture_paths
 
@@ -149,9 +118,11 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         print(f"Extracted files: {extracted_files}")
 
         print(f"OBJ file path: {obj_path}")
-        print(f"Diffuse texture path: {texture_paths['diffuse']}")
-        print(f"Normal texture path: {texture_paths['normal']}")
+        print(f"AO texture path: {texture_paths['ao']}")
+        print(f"Color texture path: {texture_paths['color']}")
         print(f"Metallic texture path: {texture_paths['metallic']}")
+        print(f"Normals texture path: {texture_paths['normals']}")
+        print(f"Roughness texture path: {texture_paths['roughness']}")
 
         if not os.path.exists(obj_path):
             print(f"OBJ file not found: {obj_path}")

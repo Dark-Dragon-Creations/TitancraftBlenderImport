@@ -2,11 +2,12 @@ import bpy  # type: ignore
 
 def arrange_nodes(node_tree):
     # Define absolute coordinates for each node type
-    tex_image_coords = (-600, 400)
-    tex_normal_coords = (-600, -400)
+    tex_color_coords = (-600, 400)
+    tex_normals_coords = (-600, 200)
     tex_metallic_coords = (-600, 0)
-    separate_color_coords = (-300, -50)
-    normal_map_coords = (-300, -400)
+    tex_ao_coords = (-600, -200)
+    tex_roughness_coords = (-600, -400)
+    normal_map_coords = (-300, 200)
     mix_rgb_coords = (-300, 400)
     bsdf_coords = (0, 0)
     output_coords = (300, 0)
@@ -14,18 +15,21 @@ def arrange_nodes(node_tree):
     for node in node_tree.nodes:
         print(f"Processing node: {node.name}, type: {node.type}, current location: {node.location}")
         if node.type == 'TEX_IMAGE':
-            if node.image.name.endswith('Normals.png'):
-                node.location = tex_normal_coords
-                print(f"Moved Normals node to {tex_normal_coords}")
-            elif node.image.name.endswith('Metallic AO Roughness.png'):
+            if node.image.name.endswith('normals.png'):
+                node.location = tex_normals_coords
+                print(f"Moved Normals node to {tex_normals_coords}")
+            elif node.image.name.endswith('metallic.png'):
                 node.location = tex_metallic_coords
-                print(f"Moved Metallic AO Roughness node to {tex_metallic_coords}")
+                print(f"Moved Metallic node to {tex_metallic_coords}")
+            elif node.image.name.endswith('ao.png'):
+                node.location = tex_ao_coords
+                print(f"Moved AO node to {tex_ao_coords}")
+            elif node.image.name.endswith('roughness.png'):
+                node.location = tex_roughness_coords
+                print(f"Moved Roughness node to {tex_roughness_coords}")
             else:
-                node.location = tex_image_coords
-                print(f"Moved texture node to {tex_image_coords}")
-        elif isinstance(node, bpy.types.ShaderNodeSeparateColor):
-            node.location = separate_color_coords
-            print(f"Moved Separate Color node to {separate_color_coords}")
+                node.location = tex_color_coords
+                print(f"Moved Color node to {tex_color_coords}")
         elif isinstance(node, bpy.types.ShaderNodeNormalMap):
             node.location = normal_map_coords
             print(f"Moved Normal Map node to {normal_map_coords}")

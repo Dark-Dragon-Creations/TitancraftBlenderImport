@@ -2,7 +2,7 @@ import bpy  # type: ignore
 import os
 from .utils import arrange_nodes
 
-def apply_textures(obj_path, texture_paths, base_name, ior=1.05, configure_for_unreal=False):
+def apply_textures(obj_path, texture_paths, base_name, ior=1.05, configuration='DEFAULT'):
     print("Applying textures...")
 
     # Import the .obj file
@@ -30,40 +30,40 @@ def apply_textures(obj_path, texture_paths, base_name, ior=1.05, configure_for_u
     bsdf = material.node_tree.nodes.get("Principled BSDF")
 
     # Create texture nodes
-    tex_image_node = material.node_tree.nodes.new('ShaderNodeTexImage')
-    tex_normal_node = material.node_tree.nodes.new('ShaderNodeTexImage')
+    tex_color_node = material.node_tree.nodes.new('ShaderNodeTexImage')
+    tex_normals_node = material.node_tree.nodes.new('ShaderNodeTexImage')
     tex_metallic_node = material.node_tree.nodes.new('ShaderNodeTexImage')
-    separate_color_node = material.node_tree.nodes.new('ShaderNodeSeparateColor')  # Use the Separate Color node
-    normal_map_node = material.node_tree.nodes.new('ShaderNodeNormalMap')  # Add Normal Map node
+    tex_roughness_node = material.node_tree.nodes.new('ShaderNodeTexImage')
+    normal_map_node = material.node_tree.nodes.new('ShaderNodeNormalMap')
 
     # Load textures
-    tex_image_node.image = bpy.data.images.load(texture_paths['diffuse'])
-    tex_normal_node.image = bpy.data.images.load(texture_paths['normal'])
+    tex_color_node.image = bpy.data.images.load(texture_paths['color'])
+    tex_normals_node.image = bpy.data.images.load(texture_paths['normals'])
     tex_metallic_node.image = bpy.data.images.load(texture_paths['metallic'])
+    tex_roughness_node.image = bpy.data.images.load(texture_paths['roughness'])
 
     # Set the color space of the Normal map to Non-Color
-    tex_normal_node.image.colorspace_settings.name = 'Non-Color'
+    tex_normals_node.image.colorspace_settings.name = 'Non-Color'
+    tex_metallic_node.image.colorspace_settings.name = 'Non-Color'
+    tex_roughness_node.image.colorspace_settings.name = 'Non-Color'
 
     # Connect texture nodes to the Principled BSDF shader
-    material.node_tree.links.new(bsdf.inputs['Base Color'], tex_image_node.outputs['Color'])  # Albedo to Base Color
-    material.node_tree.links.new(normal_map_node.inputs['Color'], tex_normal_node.outputs['Color'])  # Connect Normals Texture to Normal Map node
-    material.node_tree.links.new(bsdf.inputs['Normal'], normal_map_node.outputs['Normal'])  # Connect Normal Map node to BSDF
+    material.node_tree.links.new(bsdf.inputs['Base Color'], tex_color_node.outputs['Color'])
+    material.node_tree.links.new(normal_map_node.inputs['Color'], tex_normals_node.outputs['Color'])
+    material.node_tree.links.new(bsdf.inputs['Normal'], normal_map_node.outputs['Normal'])
+    material.node_tree.links.new(bsdf.inputs['Metallic'], tex_metallic_node.outputs['Color'])
+    material.node_tree.links.new(bsdf.inputs['Roughness'], tex_roughness_node.outputs['Color'])
 
-    # Connect Metallic AO Roughness to Separate Color node
-    material.node_tree.links.new(separate_color_node.inputs['Color'], tex_metallic_node.outputs['Color'])
+    if configuration != 'UNREAL':
+        tex_ao_node = material.node_tree.nodes.new('ShaderNodeTexImage')
+        tex_ao_node.image = bpy.data.images.load(texture_paths['ao'])
+        tex_ao_node.image.colorspace_settings.name = 'Non-Color'
 
-    # Connect Separate Color node outputs to the BSDF shader
-    material.node_tree.links.new(bsdf.inputs['Metallic'], separate_color_node.outputs['Red'])
-    material.node_tree.links.new(bsdf.inputs['Roughness'], tex_metallic_node.outputs['Alpha'])  # Roughness Alpha to BSDF Roughness
-
-    if not configure_for_unreal:
-        mix_rgb_node = material.node_tree.nodes.new('ShaderNodeMixRGB')  # Add MixRGB node
-        # Set the MixRGB node to Multiply
+        mix_rgb_node = material.node_tree.nodes.new('ShaderNodeMixRGB')
         mix_rgb_node.blend_type = 'MULTIPLY'
-        # Connect the MixRGB node
-        material.node_tree.links.new(mix_rgb_node.inputs['Color1'], tex_image_node.outputs['Color'])  # Albedo to Mix A
-        material.node_tree.links.new(mix_rgb_node.inputs['Color2'], separate_color_node.outputs['Green'])  # Separate Color Green to Mix B
-        material.node_tree.links.new(bsdf.inputs['Base Color'], mix_rgb_node.outputs['Color'])  # MixRGB to Base Color
+        material.node_tree.links.new(mix_rgb_node.inputs['Color1'], tex_color_node.outputs['Color'])
+        material.node_tree.links.new(mix_rgb_node.inputs['Color2'], tex_ao_node.outputs['Color'])
+        material.node_tree.links.new(bsdf.inputs['Base Color'], mix_rgb_node.outputs['Color'])
 
     # Set the IOR
     bsdf.inputs['IOR'].default_value = ior
