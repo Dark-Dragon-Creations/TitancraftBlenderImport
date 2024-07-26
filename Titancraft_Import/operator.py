@@ -6,6 +6,8 @@ from bpy_extras.io_utils import ImportHelper  # type: ignore
 from .functions.cleanup import cleanup_default_objects
 from .functions.apply_textures import apply_textures
 from .functions.resize import resize_object
+from .functions.turntable import setup_turntable_camera, add_lights
+from .functions.utils import check_files_exist, get_subdirectory_path
 
 class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ignore
     bl_idname = "titancraft_import.zip"
@@ -44,7 +46,7 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         base_name, extract_to = self.extract_zip()
         obj_path, texture_paths = self.get_file_paths(base_name, extract_to)
 
-        if not self.check_files_exist(obj_path, texture_paths):
+        if not check_files_exist(obj_path, texture_paths):
             return {'CANCELLED'}
 
         if self.rename_objects:
@@ -64,8 +66,8 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
                 return {'CANCELLED'}
 
         if self.import_for == 'TURNTABLE':
-            self.setup_turntable_camera()
-            self.add_lights()
+            setup_turntable_camera()
+            add_lights()
 
         return {'FINISHED'}
 
@@ -92,7 +94,7 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         }
 
         if not all(os.path.exists(path) for path in [obj_path, *texture_paths.values()]):
-            subdirectory_path = self.get_subdirectory_path(extract_to)
+            subdirectory_path = get_subdirectory_path(extract_to)
             if subdirectory_path:
                 obj_path = os.path.join(subdirectory_path, f"{base_name}.obj")
                 texture_paths = {
@@ -105,34 +107,6 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
 
         return obj_path, texture_paths
 
-    def get_subdirectory_path(self, extract_to):
-        subdirectories = [os.path.join(extract_to, d) for d in os.listdir(extract_to) if os.path.isdir(os.path.join(extract_to, d))]
-        if len(subdirectories) == 1:
-            subdirectory_path = subdirectories[0]
-            print(f"Subdirectory path: {subdirectory_path}")
-            return subdirectory_path
-        return None
-
-    def check_files_exist(self, obj_path, texture_paths):
-        extracted_files = os.listdir(os.path.dirname(obj_path))
-        print(f"Extracted files: {extracted_files}")
-
-        print(f"OBJ file path: {obj_path}")
-        print(f"AO texture path: {texture_paths['ao']}")
-        print(f"Color texture path: {texture_paths['color']}")
-        print(f"Metallic texture path: {texture_paths['metallic']}")
-        print(f"Normals texture path: {texture_paths['normals']}")
-        print(f"Roughness texture path: {texture_paths['roughness']}")
-
-        if not os.path.exists(obj_path):
-            print(f"OBJ file not found: {obj_path}")
-            return False
-        for key, path in texture_paths.items():
-            if not os.path.exists(path):
-                print(f"Texture file not found: {path}")
-                return False
-        return True
-
     def rename_collection(self, old_name, new_name):
         if old_name in bpy.data.collections:
             bpy.data.collections[old_name].name = new_name
@@ -143,56 +117,6 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         if imported_objects:
             imported_objects[-1].name = new_name
             print(f"Renamed imported object to '{new_name}'.")
-
-    def setup_turntable_camera(self):
-        # Add a camera
-        bpy.ops.object.camera_add(location=(0, -5, 2), rotation=(1.1, 0, 0))  # Placing the camera further away and higher
-        camera = bpy.context.active_object
-        camera.name = "Turntable_Camera"
-
-        # Add an empty object at the center of the model
-        bpy.ops.object.empty_add(type='PLAIN_AXES', location=(0, 0, 1))  # Adjust the Z location to be the center
-        empty = bpy.context.active_object
-        empty.name = "Turntable_Empty"
-
-        # Set the camera to look at the empty object
-        constraint = camera.constraints.new(type='TRACK_TO')
-        constraint.target = empty
-        constraint.track_axis = 'TRACK_NEGATIVE_Z'
-        constraint.up_axis = 'UP_Y'
-
-        # Parent the camera to the empty object
-        camera.parent = empty
-
-        # Set up the animation for the empty object
-        bpy.context.scene.frame_start = 1
-        bpy.context.scene.frame_end = 150  # 5 seconds at 30 FPS
-
-        empty.rotation_euler = (0, 0, 0)
-        empty.keyframe_insert(data_path="rotation_euler", frame=1)
-        empty.rotation_euler = (0, 0, 6.28319)  # 360 degrees in radians
-        empty.keyframe_insert(data_path="rotation_euler", frame=150)
-
-        # Set the scene to play the animation
-        bpy.ops.screen.animation_play()
-
-    def add_lights(self):
-        light_distance = 5
-        light_height = 2
-
-        # Positions for the lights (N, E, S, W)
-        light_positions = [
-            (0, -light_distance, light_height),
-            (light_distance, 0, light_height),
-            (0, light_distance, light_height),
-            (-light_distance, 0, light_height)
-        ]
-
-        for i, position in enumerate(light_positions):
-            bpy.ops.object.light_add(type='POINT', location=position)
-            light = bpy.context.active_object
-            light.name = f"Turntable_Light_{i+1}"
-            light.data.energy = 1000  # Adjust the intensity as needed
 
 def menu_func_import(self, context):
     self.layout.operator(ImportApplyTexturesOperator.bl_idname, text="Titancraft (.zip)")

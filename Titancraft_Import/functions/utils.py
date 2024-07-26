@@ -1,4 +1,5 @@
 import bpy  # type: ignore
+import os
 
 def arrange_nodes(node_tree):
     # Define absolute coordinates for each node type
@@ -45,3 +46,31 @@ def arrange_nodes(node_tree):
         else:
             print(f"Node {node.name} of type {node.type} not moved.")
         print(f"Node {node.name} new location: {node.location}")
+
+def check_files_exist(obj_path, texture_paths):
+    extracted_files = os.listdir(os.path.dirname(obj_path))
+    print(f"Extracted files: {extracted_files}")
+
+    print(f"OBJ file path: {obj_path}")
+    print(f"AO texture path: {texture_paths['ao']}")
+    print(f"Color texture path: {texture_paths['color']}")
+    print(f"Metallic texture path: {texture_paths['metallic']}")
+    print(f"Normals texture path: {texture_paths['normals']}")
+    print(f"Roughness texture path: {texture_paths['roughness']}")
+
+    if not os.path.exists(obj_path):
+        print(f"OBJ file not found: {obj_path}")
+        return False
+    for key, path in texture_paths.items():
+        if not os.path.exists(path):
+            print(f"Texture file not found: {path}")
+            return False
+    return True
+
+def get_subdirectory_path(extract_to):
+    subdirectories = [os.path.join(extract_to, d) for d in os.listdir(extract_to) if os.path.isdir(os.path.join(extract_to, d))]
+    if len(subdirectories) == 1:
+        subdirectory_path = subdirectories[0]
+        print(f"Subdirectory path: {subdirectory_path}")
+        return subdirectory_path
+    return None
