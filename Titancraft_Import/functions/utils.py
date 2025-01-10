@@ -3,11 +3,11 @@ import os
 
 def arrange_nodes(node_tree):
     # Define absolute coordinates for each node type
-    tex_color_coords = (-600, 400)
+    tex_color_coords = (-600, 600)
     tex_normals_coords = (-600, 200)
-    tex_metallic_coords = (-600, 0)
-    tex_ao_coords = (-600, -200)
-    tex_roughness_coords = (-600, -400)
+    tex_metallic_coords = (-600, -100)
+    tex_ao_coords = (-900, 275)
+    tex_roughness_coords = (-600, 900)
     normal_map_coords = (-300, 200)
     mix_rgb_coords = (-300, 400)
     bsdf_coords = (0, 0)
