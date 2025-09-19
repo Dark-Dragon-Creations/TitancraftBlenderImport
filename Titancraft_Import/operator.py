@@ -43,26 +43,29 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
     )
 
     def execute(self, context):
-        base_name, extract_to = extract_zip(self.filepath)
-        obj_path, texture_paths = get_file_paths(base_name, extract_to)
+        from .functions.logging_utils import get_logger
+        logger = get_logger(self)
+        
+        base_name, extract_to = extract_zip(self.filepath, logger)
+        obj_path, texture_paths = get_file_paths(base_name, extract_to, logger)
 
-        if not check_files_exist(obj_path, texture_paths):
+        if not check_files_exist(obj_path, texture_paths, logger):
             return {'CANCELLED'}
 
         if self.rename_objects:
             from .functions.constants import FileConstants
-            rename_collection(FileConstants.DEFAULT_COLLECTION_NAME, FileConstants.CHARACTER_COLLECTION_NAME)
+            rename_collection(FileConstants.DEFAULT_COLLECTION_NAME, FileConstants.CHARACTER_COLLECTION_NAME, logger)
         if self.remove_default_objects:
             cleanup_default_objects()
 
-        result = apply_textures(obj_path, texture_paths, base_name, self.ior, self.import_for)
+        result = apply_textures(obj_path, texture_paths, base_name, self.ior, self.import_for, self)
         if result == {'CANCELLED'}:
             return {'CANCELLED'}
 
         if self.rename_objects:
-            rename_imported_object(base_name)
+            rename_imported_object(base_name, logger)
         if self.import_for in [ImportConstants.CONFIGURATION_UNREAL, ImportConstants.CONFIGURATION_TURNTABLE]:
-            result = resize_object(scale=ScalingConstants.UNREAL_ENGINE_SCALE)
+            result = resize_object(scale=ScalingConstants.UNREAL_ENGINE_SCALE, logger=logger)
             if result == {'CANCELLED'}:
                 return {'CANCELLED'}
 

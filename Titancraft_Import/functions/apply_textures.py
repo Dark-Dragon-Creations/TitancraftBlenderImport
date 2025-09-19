@@ -2,28 +2,31 @@ import bpy  # type: ignore
 import os
 from .utils import arrange_nodes
 from .constants import MaterialConstants, ImportConstants, ViewportConstants
+from .logging_utils import get_logger, log_operation_start, log_operation_success, log_operation_error, log_file_operation
 
-def apply_textures(obj_path, texture_paths, base_name, ior=MaterialConstants.DEFAULT_IOR, configuration=ImportConstants.CONFIGURATION_DEFAULT):
-    print("Applying textures...")
+def apply_textures(obj_path, texture_paths, base_name, ior=MaterialConstants.DEFAULT_IOR, configuration=ImportConstants.CONFIGURATION_DEFAULT, operator=None):
+    logger = get_logger(operator)
+    log_operation_start("texture application", logger)
 
     # Import the .obj file
     try:
+        log_file_operation("Importing OBJ", obj_path, logger)
         bpy.ops.wm.obj_import(filepath=obj_path)
-        print(f"Imported OBJ file: {obj_path}")
+        logger.info(f"Successfully imported OBJ file")
     except Exception as e:
-        print(f"Failed to import .obj file: {e}")
+        log_operation_error("OBJ import", e, logger)
         return {'CANCELLED'}
 
     # Ensure the imported object is selected and active
     imported_objects = [obj for obj in bpy.context.scene.objects if obj.type == 'MESH']
     if not imported_objects:
-        print("No objects imported.")
+        logger.error("No mesh objects found after import")
         return {'CANCELLED'}
 
     obj = imported_objects[-1]  # Get the last imported object
     obj.select_set(True)
     bpy.context.view_layer.objects.active = obj
-    print(f"Selected imported object: {obj.name}")
+    logger.debug(f"Selected imported object: {obj.name}")
 
     # Create a new material
     material = bpy.data.materials.new(name=MaterialConstants.MATERIAL_NAME)
@@ -70,7 +73,7 @@ def apply_textures(obj_path, texture_paths, base_name, ior=MaterialConstants.DEF
     bsdf.inputs['IOR'].default_value = ior
 
     # Arrange nodes
-    arrange_nodes(material.node_tree)
+    arrange_nodes(material.node_tree, logger)
 
     # Assign material to the object
     if obj.data.materials:
@@ -85,4 +88,5 @@ def apply_textures(obj_path, texture_paths, base_name, ior=MaterialConstants.DEF
                 if space.type == ViewportConstants.VIEW_3D_AREA_TYPE:
                     space.shading.type = ViewportConstants.MATERIAL_PREVIEW_SHADING
 
+    log_operation_success("texture application", logger)
     return {'FINISHED'}
