@@ -7,6 +7,7 @@ from .functions.resize import resize_object
 from .functions.turntable import setup_turntable_camera, add_lights
 from .functions.utils import check_files_exist, get_subdirectory_path
 from .functions.io import extract_zip, get_file_paths, rename_collection, rename_imported_object
+from .functions.constants import MaterialConstants, ScalingConstants, ImportConstants
 
 class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ignore
     bl_idname = "titancraft_import.zip"
@@ -18,17 +19,17 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
     ior: FloatProperty(  # type: ignore
         name="IOR",
         description="Index of Refraction for the material",
-        default=1.05,
+        default=MaterialConstants.DEFAULT_IOR,
     )
     import_for: EnumProperty(  # type: ignore
         name="Import For",
         description="Select the configuration type",
         items=[
-            ('DEFAULT', "Default", "Default configuration"),
-            ('UNREAL', "Unreal", "Configure the model for Unreal Engine"),
-            ('TURNTABLE', "Turntable", "Add a rotating camera for turntable animation")
+            (ImportConstants.CONFIGURATION_DEFAULT, "Default", "Default configuration"),
+            (ImportConstants.CONFIGURATION_UNREAL, "Unreal", "Configure the model for Unreal Engine"),
+            (ImportConstants.CONFIGURATION_TURNTABLE, "Turntable", "Add a rotating camera for turntable animation")
         ],
-        default='DEFAULT'
+        default=ImportConstants.CONFIGURATION_DEFAULT
     )
     remove_default_objects: BoolProperty(  # type: ignore
         name="Remove Default Objects",
@@ -49,7 +50,8 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
             return {'CANCELLED'}
 
         if self.rename_objects:
-            rename_collection('Collection', 'Character')
+            from .functions.constants import FileConstants
+            rename_collection(FileConstants.DEFAULT_COLLECTION_NAME, FileConstants.CHARACTER_COLLECTION_NAME)
         if self.remove_default_objects:
             cleanup_default_objects()
 
@@ -59,12 +61,12 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
 
         if self.rename_objects:
             rename_imported_object(base_name)
-        if self.import_for in ['UNREAL', 'TURNTABLE']:
-            result = resize_object(scale=(0.054, 0.054, 0.054))
+        if self.import_for in [ImportConstants.CONFIGURATION_UNREAL, ImportConstants.CONFIGURATION_TURNTABLE]:
+            result = resize_object(scale=ScalingConstants.UNREAL_ENGINE_SCALE)
             if result == {'CANCELLED'}:
                 return {'CANCELLED'}
 
-        if self.import_for == 'TURNTABLE':
+        if self.import_for == ImportConstants.CONFIGURATION_TURNTABLE:
             setup_turntable_camera()
             add_lights()
 

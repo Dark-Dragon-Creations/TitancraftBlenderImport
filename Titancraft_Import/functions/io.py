@@ -1,6 +1,7 @@
 import bpy  # type: ignore
 import os
 import zipfile
+from .constants import FileConstants, ImportConstants
 
 def extract_zip(filepath):
     extract_to = bpy.app.tempdir
@@ -15,25 +16,25 @@ def extract_zip(filepath):
     return base_name, extract_to
 
 def get_file_paths(base_name, extract_to):
-    obj_path = os.path.join(extract_to, f"{base_name}.obj")
+    obj_path = os.path.join(extract_to, f"{base_name}{ImportConstants.OBJ_EXTENSION}")
     texture_paths = {
-        'ao': os.path.join(extract_to, f"{base_name}_ao.png"),
-        'color': os.path.join(extract_to, f"{base_name}_color.png"),
-        'metallic': os.path.join(extract_to, f"{base_name}_metallic.png"),
-        'normals': os.path.join(extract_to, f"{base_name}_normals.png"),
-        'roughness': os.path.join(extract_to, f"{base_name}_roughness.png")
+        'ao': os.path.join(extract_to, f"{base_name}_ao{ImportConstants.PNG_EXTENSION}"),
+        'color': os.path.join(extract_to, f"{base_name}_color{ImportConstants.PNG_EXTENSION}"),
+        'metallic': os.path.join(extract_to, f"{base_name}_metallic{ImportConstants.PNG_EXTENSION}"),
+        'normals': os.path.join(extract_to, f"{base_name}_normals{ImportConstants.PNG_EXTENSION}"),
+        'roughness': os.path.join(extract_to, f"{base_name}_roughness{ImportConstants.PNG_EXTENSION}")
     }
 
     if not all(os.path.exists(path) for path in [obj_path, *texture_paths.values()]):
         subdirectory_path = get_subdirectory_path(extract_to)
         if subdirectory_path:
-            obj_path = os.path.join(subdirectory_path, f"{base_name}.obj")
+            obj_path = os.path.join(subdirectory_path, f"{base_name}{ImportConstants.OBJ_EXTENSION}")
             texture_paths = {
-                'ao': os.path.join(subdirectory_path, f"{base_name}_ao.png"),
-                'color': os.path.join(subdirectory_path, f"{base_name}_color.png"),
-                'metallic': os.path.join(subdirectory_path, f"{base_name}_metallic.png"),
-                'normals': os.path.join(subdirectory_path, f"{base_name}_normals.png"),
-                'roughness': os.path.join(subdirectory_path, f"{base_name}_roughness.png")
+                'ao': os.path.join(subdirectory_path, f"{base_name}_ao{ImportConstants.PNG_EXTENSION}"),
+                'color': os.path.join(subdirectory_path, f"{base_name}_color{ImportConstants.PNG_EXTENSION}"),
+                'metallic': os.path.join(subdirectory_path, f"{base_name}_metallic{ImportConstants.PNG_EXTENSION}"),
+                'normals': os.path.join(subdirectory_path, f"{base_name}_normals{ImportConstants.PNG_EXTENSION}"),
+                'roughness': os.path.join(subdirectory_path, f"{base_name}_roughness{ImportConstants.PNG_EXTENSION}")
             }
 
     return obj_path, texture_paths

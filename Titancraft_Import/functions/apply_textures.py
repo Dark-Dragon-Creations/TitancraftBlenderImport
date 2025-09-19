@@ -1,8 +1,9 @@
 import bpy  # type: ignore
 import os
 from .utils import arrange_nodes
+from .constants import MaterialConstants, ImportConstants, ViewportConstants
 
-def apply_textures(obj_path, texture_paths, base_name, ior=1.05, configuration='DEFAULT'):
+def apply_textures(obj_path, texture_paths, base_name, ior=MaterialConstants.DEFAULT_IOR, configuration=ImportConstants.CONFIGURATION_DEFAULT):
     print("Applying textures...")
 
     # Import the .obj file
@@ -25,9 +26,9 @@ def apply_textures(obj_path, texture_paths, base_name, ior=1.05, configuration='
     print(f"Selected imported object: {obj.name}")
 
     # Create a new material
-    material = bpy.data.materials.new(name="Material")
+    material = bpy.data.materials.new(name=MaterialConstants.MATERIAL_NAME)
     material.use_nodes = True
-    bsdf = material.node_tree.nodes.get("Principled BSDF")
+    bsdf = material.node_tree.nodes.get(MaterialConstants.PRINCIPLED_BSDF_NAME)
 
     # Create texture nodes
     tex_color_node = material.node_tree.nodes.new('ShaderNodeTexImage')
@@ -43,9 +44,9 @@ def apply_textures(obj_path, texture_paths, base_name, ior=1.05, configuration='
     tex_roughness_node.image = bpy.data.images.load(texture_paths['roughness'])
 
     # Set the color space of the Normal map to Non-Color
-    tex_normals_node.image.colorspace_settings.name = 'Non-Color'
-    tex_metallic_node.image.colorspace_settings.name = 'Non-Color'
-    tex_roughness_node.image.colorspace_settings.name = 'Non-Color'
+    tex_normals_node.image.colorspace_settings.name = MaterialConstants.NON_COLOR_SPACE
+    tex_metallic_node.image.colorspace_settings.name = MaterialConstants.NON_COLOR_SPACE
+    tex_roughness_node.image.colorspace_settings.name = MaterialConstants.NON_COLOR_SPACE
 
     # Connect texture nodes to the Principled BSDF shader
     material.node_tree.links.new(bsdf.inputs['Base Color'], tex_color_node.outputs['Color'])
@@ -54,10 +55,10 @@ def apply_textures(obj_path, texture_paths, base_name, ior=1.05, configuration='
     material.node_tree.links.new(bsdf.inputs['Metallic'], tex_metallic_node.outputs['Color'])
     material.node_tree.links.new(bsdf.inputs['Roughness'], tex_roughness_node.outputs['Color'])
 
-    if configuration != 'UNREAL':
+    if configuration != ImportConstants.CONFIGURATION_UNREAL:
         tex_ao_node = material.node_tree.nodes.new('ShaderNodeTexImage')
         tex_ao_node.image = bpy.data.images.load(texture_paths['ao'])
-        tex_ao_node.image.colorspace_settings.name = 'Non-Color'
+        tex_ao_node.image.colorspace_settings.name = MaterialConstants.NON_COLOR_SPACE
 
         mix_rgb_node = material.node_tree.nodes.new('ShaderNodeMixRGB')
         mix_rgb_node.blend_type = 'MULTIPLY'
@@ -79,9 +80,9 @@ def apply_textures(obj_path, texture_paths, base_name, ior=1.05, configuration='
 
     # Set viewport shading to Material Preview
     for area in bpy.context.screen.areas:
-        if area.type == 'VIEW_3D':
+        if area.type == ViewportConstants.VIEW_3D_AREA_TYPE:
             for space in area.spaces:
-                if space.type == 'VIEW_3D':
-                    space.shading.type = 'MATERIAL'
+                if space.type == ViewportConstants.VIEW_3D_AREA_TYPE:
+                    space.shading.type = ViewportConstants.MATERIAL_PREVIEW_SHADING
 
     return {'FINISHED'}

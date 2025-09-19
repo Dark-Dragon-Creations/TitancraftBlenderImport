@@ -1,51 +1,41 @@
 import bpy  # type: ignore
+from .constants import AnimationConstants, LightingConstants, CameraConstants, FileConstants
 
 def setup_turntable_camera():
     # Add a camera
-    bpy.ops.object.camera_add(location=(0, -5, 2), rotation=(1.1, 0, 0))  # Placing the camera further away and higher
+    bpy.ops.object.camera_add(location=CameraConstants.TURNTABLE_CAMERA_LOCATION, rotation=CameraConstants.TURNTABLE_CAMERA_ROTATION)
     camera = bpy.context.active_object
-    camera.name = "Turntable_Camera"
+    camera.name = FileConstants.TURNTABLE_CAMERA_NAME
 
     # Add an empty object at the center of the model
-    bpy.ops.object.empty_add(type='PLAIN_AXES', location=(0, 0, 1))  # Adjust the Z location to be the center
+    bpy.ops.object.empty_add(type='PLAIN_AXES', location=CameraConstants.TURNTABLE_EMPTY_LOCATION)
     empty = bpy.context.active_object
-    empty.name = "Turntable_Empty"
+    empty.name = FileConstants.TURNTABLE_EMPTY_NAME
 
     # Set the camera to look at the empty object
     constraint = camera.constraints.new(type='TRACK_TO')
     constraint.target = empty
-    constraint.track_axis = 'TRACK_NEGATIVE_Z'
-    constraint.up_axis = 'UP_Y'
+    constraint.track_axis = CameraConstants.TRACK_AXIS
+    constraint.up_axis = CameraConstants.UP_AXIS
 
     # Parent the camera to the empty object
     camera.parent = empty
 
     # Set up the animation for the empty object
-    bpy.context.scene.frame_start = 1
-    bpy.context.scene.frame_end = 150  # 5 seconds at 30 FPS
+    bpy.context.scene.frame_start = AnimationConstants.TURNTABLE_FRAME_START
+    bpy.context.scene.frame_end = AnimationConstants.TURNTABLE_FRAME_END
 
-    empty.rotation_euler = (0, 0, 0)
-    empty.keyframe_insert(data_path="rotation_euler", frame=1)
-    empty.rotation_euler = (0, 0, 6.28319)  # 360 degrees in radians
-    empty.keyframe_insert(data_path="rotation_euler", frame=150)
+    empty.rotation_euler = AnimationConstants.TURNTABLE_ROTATION_START
+    empty.keyframe_insert(data_path="rotation_euler", frame=AnimationConstants.TURNTABLE_FRAME_START)
+    empty.rotation_euler = AnimationConstants.TURNTABLE_ROTATION_END
+    empty.keyframe_insert(data_path="rotation_euler", frame=AnimationConstants.TURNTABLE_FRAME_END)
 
     # Set the scene to play the animation
     bpy.ops.screen.animation_play()
 
 def add_lights():
-    light_distance = 5
-    light_height = 2
-
-    # Positions for the lights (N, E, S, W)
-    light_positions = [
-        (0, -light_distance, light_height),
-        (light_distance, 0, light_height),
-        (0, light_distance, light_height),
-        (-light_distance, 0, light_height)
-    ]
-
-    for i, position in enumerate(light_positions):
+    for i, position in enumerate(LightingConstants.LIGHT_POSITIONS):
         bpy.ops.object.light_add(type='POINT', location=position)
         light = bpy.context.active_object
-        light.name = f"Turntable_Light_{i+1}"
-        light.data.energy = 1000  # Adjust the intensity as needed
+        light.name = f"{FileConstants.TURNTABLE_LIGHT_PREFIX}{i+1}"
+        light.data.energy = LightingConstants.LIGHT_ENERGY

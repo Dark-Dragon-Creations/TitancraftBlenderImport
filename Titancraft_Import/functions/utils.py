@@ -1,48 +1,41 @@
 import bpy  # type: ignore
 import os
+from .constants import NodeConstants, FileConstants
 
 def arrange_nodes(node_tree):
-    # Define absolute coordinates for each node type
-    tex_color_coords = (-600, 600)
-    tex_normals_coords = (-600, 200)
-    tex_metallic_coords = (-600, -100)
-    tex_ao_coords = (-900, 275)
-    tex_roughness_coords = (-600, 900)
-    normal_map_coords = (-300, 200)
-    mix_rgb_coords = (-300, 400)
-    bsdf_coords = (0, 0)
-    output_coords = (300, 0)
+    # Use constants for node positioning
+    positions = NodeConstants.NODE_POSITIONS
 
     for node in node_tree.nodes:
         print(f"Processing node: {node.name}, type: {node.type}, current location: {node.location}")
         if node.type == 'TEX_IMAGE':
             if node.image.name.endswith('normals.png'):
-                node.location = tex_normals_coords
-                print(f"Moved Normals node to {tex_normals_coords}")
+                node.location = positions['tex_normals']
+                print(f"Moved Normals node to {positions['tex_normals']}")
             elif node.image.name.endswith('metallic.png'):
-                node.location = tex_metallic_coords
-                print(f"Moved Metallic node to {tex_metallic_coords}")
+                node.location = positions['tex_metallic']
+                print(f"Moved Metallic node to {positions['tex_metallic']}")
             elif node.image.name.endswith('ao.png'):
-                node.location = tex_ao_coords
-                print(f"Moved AO node to {tex_ao_coords}")
+                node.location = positions['tex_ao']
+                print(f"Moved AO node to {positions['tex_ao']}")
             elif node.image.name.endswith('roughness.png'):
-                node.location = tex_roughness_coords
-                print(f"Moved Roughness node to {tex_roughness_coords}")
+                node.location = positions['tex_roughness']
+                print(f"Moved Roughness node to {positions['tex_roughness']}")
             else:
-                node.location = tex_color_coords
-                print(f"Moved Color node to {tex_color_coords}")
+                node.location = positions['tex_color']
+                print(f"Moved Color node to {positions['tex_color']}")
         elif isinstance(node, bpy.types.ShaderNodeNormalMap):
-            node.location = normal_map_coords
-            print(f"Moved Normal Map node to {normal_map_coords}")
+            node.location = positions['normal_map']
+            print(f"Moved Normal Map node to {positions['normal_map']}")
         elif isinstance(node, bpy.types.ShaderNodeMixRGB):
-            node.location = mix_rgb_coords
-            print(f"Moved MixRGB node to {mix_rgb_coords}")
+            node.location = positions['mix_rgb']
+            print(f"Moved MixRGB node to {positions['mix_rgb']}")
         elif node.type == 'BSDF_PRINCIPLED':
-            node.location = bsdf_coords
-            print(f"Moved Principled BSDF node to {bsdf_coords}")
+            node.location = positions['bsdf']
+            print(f"Moved Principled BSDF node to {positions['bsdf']}")
         elif node.type == 'OUTPUT_MATERIAL':
-            node.location = output_coords
-            print(f"Moved Material Output node to {output_coords}")
+            node.location = positions['output']
+            print(f"Moved Material Output node to {positions['output']}")
         else:
             print(f"Node {node.name} of type {node.type} not moved.")
         print(f"Node {node.name} new location: {node.location}")
