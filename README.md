@@ -4,6 +4,19 @@ markdown
 
 Titancraft Import is a Blender add-on developed by DarkDragonCreations to streamline the process of importing 3D models and applying textures. This add-on automates the process of importing `.obj` files, applying textures, resizing for Unreal Engine, and setting up materials.
 
+# AI Dosclosure
+
+This Add one is created and maintained with the assistance of Github Copilot.
+
+tool is utilized for the following
+
+- Debuging Assistance.
+- Simple Function Creation.
+- Refactoring suggestions.
+- Lookup of property values and options.
+
+Tool is NOT used for vibe coding and is only used to enhance coding process. Anyone branching or forking is requested to stick with this limitation.
+
 ## Features
 
 - **One-Click Import**: Import `.obj` files and textures from a zip archive

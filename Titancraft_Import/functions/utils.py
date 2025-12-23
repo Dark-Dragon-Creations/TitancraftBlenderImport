@@ -27,6 +27,9 @@ def arrange_nodes(node_tree, logger=None):
             elif node.image.name.endswith('roughness.png'):
                 node.location = positions['tex_roughness']
                 log_node_operation(node.name, f"moved to {positions['tex_roughness']}", logger)
+            elif node.image.name.endswith('emissive.png'):
+                node.location = positions['tex_emissive']
+                log_node_operation(node.name, f"moved to {positions['tex_emissive']}", logger)
             else:
                 node.location = positions['tex_color']
                 log_node_operation(node.name, f"moved to {positions['tex_color']}", logger)
@@ -42,6 +45,9 @@ def arrange_nodes(node_tree, logger=None):
         elif node.type == 'OUTPUT_MATERIAL':
             node.location = positions['output']
             log_node_operation(node.name, f"moved to {positions['output']}", logger)
+        elif node.type == 'MATH' and node.operation == 'MULTIPLY':
+            node.location = positions['math_multiply']
+            log_node_operation(node.name, f"moved to {positions['math_multiply']}", logger)
         else:
             log_node_operation(node.name, f"not moved (unsupported type: {node.type})", logger)
 

@@ -3,6 +3,7 @@ import os
 import zipfile
 from .constants import FileConstants, ImportConstants
 from .logging_utils import get_logger, log_file_operation, log_operation_start, log_operation_success
+from .utils import get_subdirectory_path
 
 def extract_zip(filepath, logger=None):
     """Extract zip file to Blender's temp directory."""
@@ -33,7 +34,8 @@ def get_file_paths(base_name, extract_to, logger=None):
         'color': os.path.join(extract_to, f"{base_name}_color{ImportConstants.PNG_EXTENSION}"),
         'metallic': os.path.join(extract_to, f"{base_name}_metallic{ImportConstants.PNG_EXTENSION}"),
         'normals': os.path.join(extract_to, f"{base_name}_normals{ImportConstants.PNG_EXTENSION}"),
-        'roughness': os.path.join(extract_to, f"{base_name}_roughness{ImportConstants.PNG_EXTENSION}")
+        'roughness': os.path.join(extract_to, f"{base_name}_roughness{ImportConstants.PNG_EXTENSION}"),
+        'emissive': os.path.join(extract_to, f"{base_name}_emissive{ImportConstants.PNG_EXTENSION}")
     }
 
     if not all(os.path.exists(path) for path in [obj_path, *texture_paths.values()]):
@@ -46,7 +48,8 @@ def get_file_paths(base_name, extract_to, logger=None):
                 'color': os.path.join(subdirectory_path, f"{base_name}_color{ImportConstants.PNG_EXTENSION}"),
                 'metallic': os.path.join(subdirectory_path, f"{base_name}_metallic{ImportConstants.PNG_EXTENSION}"),
                 'normals': os.path.join(subdirectory_path, f"{base_name}_normals{ImportConstants.PNG_EXTENSION}"),
-                'roughness': os.path.join(subdirectory_path, f"{base_name}_roughness{ImportConstants.PNG_EXTENSION}")
+                'roughness': os.path.join(subdirectory_path, f"{base_name}_roughness{ImportConstants.PNG_EXTENSION}"),
+                'emissive': os.path.join(subdirectory_path, f"{base_name}_emissive{ImportConstants.PNG_EXTENSION}")
             }
 
     return obj_path, texture_paths

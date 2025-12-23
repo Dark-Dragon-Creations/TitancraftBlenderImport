@@ -45,6 +45,19 @@ def apply_textures(obj_path, texture_paths, base_name, ior=MaterialConstants.DEF
     tex_normals_node.image = bpy.data.images.load(texture_paths['normals'])
     tex_metallic_node.image = bpy.data.images.load(texture_paths['metallic'])
     tex_roughness_node.image = bpy.data.images.load(texture_paths['roughness'])
+    
+    # Load emissive texture if it exists
+    tex_emissive_node = None
+    math_multiply_node = None
+    if 'emissive' in texture_paths and os.path.exists(texture_paths['emissive']):
+        tex_emissive_node = material.node_tree.nodes.new('ShaderNodeTexImage')
+        tex_emissive_node.image = bpy.data.images.load(texture_paths['emissive'])
+        tex_emissive_node.image.colorspace_settings.name = MaterialConstants.SRGB_COLOR_SPACE
+        
+        # Create multiply math node for emission strength
+        math_multiply_node = material.node_tree.nodes.new('ShaderNodeMath')
+        math_multiply_node.operation = 'MULTIPLY'
+        math_multiply_node.inputs[1].default_value = 10.0  # Default multiplier value
 
     # Set the color space of the Normal map to Non-Color
     tex_normals_node.image.colorspace_settings.name = MaterialConstants.NON_COLOR_SPACE
@@ -57,6 +70,12 @@ def apply_textures(obj_path, texture_paths, base_name, ior=MaterialConstants.DEF
     material.node_tree.links.new(bsdf.inputs['Normal'], normal_map_node.outputs['Normal'])
     material.node_tree.links.new(bsdf.inputs['Metallic'], tex_metallic_node.outputs['Color'])
     material.node_tree.links.new(bsdf.inputs['Roughness'], tex_roughness_node.outputs['Color'])
+    
+    # Connect emissive texture if it exists
+    if tex_emissive_node and math_multiply_node:
+        material.node_tree.links.new(bsdf.inputs['Emission Color'], tex_color_node.outputs['Color'])
+        material.node_tree.links.new(math_multiply_node.inputs[0], tex_emissive_node.outputs['Color'])
+        material.node_tree.links.new(bsdf.inputs['Emission Strength'], math_multiply_node.outputs['Value'])
 
     if configuration != ImportConstants.CONFIGURATION_UNREAL:
         tex_ao_node = material.node_tree.nodes.new('ShaderNodeTexImage')

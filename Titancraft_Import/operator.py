@@ -5,6 +5,7 @@ from .functions.cleanup import cleanup_default_objects
 from .functions.apply_textures import apply_textures
 from .functions.resize import resize_object
 from .functions.turntable import setup_turntable_camera, add_lights
+from .functions.glow import setup_glow_compositor
 from .functions.utils import check_files_exist, get_subdirectory_path
 from .functions.io import extract_zip, get_file_paths, rename_collection, rename_imported_object
 from .functions.constants import MaterialConstants, ScalingConstants, ImportConstants
@@ -41,6 +42,11 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         description="Rename the Collection and imported object",
         default=True,
     )
+    implement_glow: BoolProperty(  # type: ignore
+        name="Implement Glow",
+        description="Enable bloom/glow effect with compositor",
+        default=True,
+    )
 
     def execute(self, context):
         from .functions.logging_utils import get_logger
@@ -72,6 +78,9 @@ class ImportApplyTexturesOperator(bpy.types.Operator, ImportHelper):  # type: ig
         if self.import_for == ImportConstants.CONFIGURATION_TURNTABLE:
             setup_turntable_camera()
             add_lights()
+        
+        if self.implement_glow:
+            setup_glow_compositor(self)
 
         return {'FINISHED'}
 

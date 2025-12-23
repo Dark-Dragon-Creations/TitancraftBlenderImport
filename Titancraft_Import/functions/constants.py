@@ -70,7 +70,9 @@ class NodeConstants:
         'tex_normals': (-600, 200),
         'tex_metallic': (-600, -100),
         'tex_ao': (-900, 275),
-        'tex_roughness': (-600, 900),
+        'tex_roughness': (-900, -100),
+        'tex_emissive': (-600, -400),
+        'math_multiply': (-300, -200),
         'normal_map': (-300, 200),
         'mix_rgb': (-300, 400),
         'bsdf': (0, 0),
@@ -106,7 +108,7 @@ class ImportConstants:
     CONFIGURATION_TURNTABLE = 'TURNTABLE'
     
     # Supported texture types
-    TEXTURE_TYPES = ['color', 'normals', 'metallic', 'roughness', 'ao']
+    TEXTURE_TYPES = ['color', 'normals', 'metallic', 'roughness', 'ao', 'emissive']
     
     # File extensions
     OBJ_EXTENSION = '.obj'
