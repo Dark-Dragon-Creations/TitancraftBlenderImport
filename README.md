@@ -68,6 +68,7 @@ Tool is NOT used for vibe coding and is only used to enhance coding process. Any
    - `{model_name}_metallic.png`: The metallic texture.
    - `{model_name}_roughness.png`: The roughness texture.
    - `{model_name}_ao.png`: The ambient occlusion texture.
+   - `{model_name}_emissive.png`: The ambient occlusion texture.
 
 3. **Properties**
 
